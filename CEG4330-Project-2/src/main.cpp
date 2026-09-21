@@ -21,6 +21,8 @@ uint32_t down_time = 0;
 bool btn_state = 0;
 bool prev_state = 0;
 uint32_t count = 0;
+bool key_state = 0;
+bool key_state_p = 0;
 
 // TONE GENERATOR
 bool tone_state = 0;
@@ -131,14 +133,28 @@ char getKeypadPress()
 		row < 0 || row > 3 )
 	{
 		//Serial.printf("Keypress OoB.\n");
-		return 0x00;
+		key_state = 0;
+		//return 0x00;
+	} else {
+		key_state = 1;
 	}
 
 	// Convert keypress to char
 	char key = 0x00;
 
 	key = keypad[row][col];
-	if(test == 1) Serial.println(key);
+
+	// Rising Edge
+	if(key_state && !key_state_p) {
+		key_state_p = key_state;
+
+		if(test == 1) Serial.print(key);
+	}
+
+	// Falling Edge
+	if(!key_state && key_state_p) {
+		key_state_p = key_state;
+	}
 
 	return key;
 }
