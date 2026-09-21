@@ -12,6 +12,9 @@
 
 #define DB_THRESHOLD 0.01
 
+// 1 for Keypad, 2 for Tone
+int8_t test = 1;
+
 // BUTTONS
 uint32_t last_time = 0;
 uint32_t down_time = 0;
@@ -135,7 +138,7 @@ char getKeypadPress()
 	char key = 0x00;
 
 	key = keypad[row][col];
-	//Serial.println(key);
+	if(test == 1) Serial.println(key);
 
 	return key;
 }
@@ -194,8 +197,8 @@ void handleTone(char key)
 void loop()
 {
 	// Handle things
-	handleButtonPress(); 
+	handleButtonPress();
 	char key = getKeypadPress();
-	handleTone(key);
+	if(test == 2) handleTone(key);
 
 }
