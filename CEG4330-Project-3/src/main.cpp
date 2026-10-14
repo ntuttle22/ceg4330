@@ -44,6 +44,7 @@ uint32_t wake_time = 0;
 bool led_enabled = false;
 bool led_state = false;
 uint32_t led_freq = 2;
+uint8_t led_dc = 128;
 
 // IR_EDGE
 volatile uint32_t last_time = 0;
@@ -84,14 +85,17 @@ void irEdge()
 
 /// @brief Toggle the onboard LED on/off.
 /// @note LED is active low on GPIO_2.
+/// @note `analogWrite()` now sets brightness by `led_dc`
 void led_toggle()
 {
 	if(led_state) {
 		led_state = 0;
+        pinMode(LED_PIN, OUTPUT);
 		digitalWrite(LED_PIN, HIGH);
 	} else {
 		led_state = 1;
-		digitalWrite(LED_PIN, LOW);
+		//digitalWrite(LED_PIN, LOW);
+        analogWrite(LED_PIN, led_dc);
 	}
     return;
 }
@@ -206,15 +210,29 @@ void loop()
     if(Frame.READY)
     {
         if(Frame.BUFFER == IR::D_R) {
-            Serial.println("IR_CMD: ->");
+            Serial.println("IR_CMD: \u21E8");
             if(led_freq < 256) led_freq *= 2;
             timerAlarm(timer, (timer_freq / led_freq), true, 0);
         }
 
         if(Frame.BUFFER == IR::D_L) {
-            Serial.println("IR_CMD: <-");
+            Serial.println("IR_CMD: \u21E6");
             if(led_freq > 1) led_freq /= 2;
             timerAlarm(timer, (timer_freq / led_freq), true, 0);
+        }
+    }
+
+    // Decrease/increase `led_dc` [0, 255] when up/down arrow is received
+    if(Frame.READY)
+    {
+        if(Frame.BUFFER == IR::D_U) {
+            Serial.println("IR_CMD: \u21E7");
+            led_dc -= 16;
+        }
+
+        if(Frame.BUFFER == IR::D_D) {
+            Serial.println("IR_CMD: \u21E9");
+            led_dc += 16;
         }
     }
 
